@@ -87,9 +87,9 @@ Set your ssh agent locally to point to your pem key and public key
 $ ssh-add /path/to/ssh_private_key.pem
 ```
 
-### Terraform Deployment
+## Terraform Deployment
 
-## Make changes by using the Terraform’s desired_cluster_profile -var-file
+### Making changes by using the Terraform’s desired_cluster_profile -var-file
 
 When reading the commands below relating to installing and upgrading, it may be easier for you to keep all these flags in a seperate file instead of the default example provided. This way you can make a change to the file and it will persist when you do other commands to your cluster in the future.
 
