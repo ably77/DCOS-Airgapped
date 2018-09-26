@@ -105,6 +105,11 @@ Failed to launch container: Failed to run 'docker -H unix:///var/run/docker.sock
 
 ![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/test-step2b.png)
 
+### Step 3: Remove the NGINX Service
+```
+dcos marathon app remove nginx
+```
+
 ## Finished!
 
 You now have a basic DC/OS Cluster setup to simulate an Airgapped (No external internet access) Environment. Next step is to install a Local Universe or the 1.12 Package Repository so that you can deploy Framework packages from the DC/OS Catalog!
