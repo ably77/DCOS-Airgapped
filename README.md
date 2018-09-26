@@ -1,2 +1,3 @@
 # DCOS-Airgapped
-A guide on how to set up an Airgapped DC/OS Cluster for labs and testing
+
+The purpose of this guide is to show a couple methods of how a Mesosphere Sales Engineer can set up an airgapped cluster for testing or lab purposes
