@@ -70,7 +70,7 @@ scp -i ~/.ssh/Mesosphere dcos-local-universe-registry.service  <user>@<master_IP
 
 Remember that the `local-universe.tar.gz` file is pretty large, so it may take some time to transfer. It may also be useful to review [How to split a large TAR file](https://www.tecmint.com/split-large-tar-into-multiple-files-of-certain-size/) if the file size is too big for your network policies. Because this Local Universe instance is located on AWS, it will be most efficient to use an AWS DC/OS cluster to leverage the AWS intranet for quicker transfer speeds.
 
-### Step 3: Move systemd files into the /etc/systemd/system directory
+### Step 3: In each Master Node, move the systemd files into the /etc/systemd/system directory
 
 ```
 sudo mv dcos-local-universe-registry.service /etc/systemd/system/
@@ -86,10 +86,10 @@ ls -la /etc/systemd/system/dcos-local-universe-*
 ### Step 4: Load the Local Universe into the local agent's Docker
 
 ```
-docker load < local-universe.tar.gz
+sudo docker load < local-universe.tar.gz
 ```
 
-Note: Tis may take some time to complete
+Note: This may take some time to complete
 
 ### Step 5: Restart the systemd daemon and enable dcos-local-universe-http and dcos-local-universe-registry services:
 
@@ -120,4 +120,79 @@ sudo systemctl status dcos-local-universe-http
 sudo systemctl status dcos-local-universe-registry
 ```
 
-Note: Although the systemd component may have the status ACTIVE
+Note: Although the systemd component may have the status ACTIVE, it may take some time for the Docker Registry and NGINX http service to spin up and start serving
+
+### Step 6: Validate that the Local Universe is up and serving
+
+Once the Local Universe is up and serving, you can run a `sudo docker ps` to see that the Registry and NGINX services are up and running. Below is an example output:
+
+```
+```
+
+### Step 7: In each agent, download a copy of the DC/OS certificate locally and set as trusted:
+
+This will allow for DC/OS agents to correctly pull images from the Docker registry
+
+```
+sudo mkdir -p /etc/docker/certs.d/master.mesos:5000
+
+sudo curl -o /etc/docker/certs.d/master.mesos:5000/ca.crt http://master.mesos:8082/certs/domain.crt
+```
+
+Restart Docker:
+
+```
+sudo systemctl restart docker
+```
+
+### Step 8: In each agent, Configure the Apache Mesos fetcher to trust the downloaded Docker certificate:
+
+This will allow for DC/OS agents to correctly pull images from the Docker registry using the Mesos fetcher instead of Docker Daemon
+
+Copy the Certificate:
+
+```
+sudo cp /etc/docker/certs.d/master.mesos:5000/ca.crt /var/lib/dcos/pki/tls/certs/docker-registry-ca.crt
+```
+
+Generate a hash:
+
+```
+cd /var/lib/dcos/pki/tls/certs/
+
+openssl x509 -hash -noout -in docker-registry-ca.crt
+```
+
+Create a soft link:
+
+```
+sudo ln -s /var/lib/dcos/pki/tls/certs/docker-registry-ca.crt /var/lib/dcos/pki/tls/certs/<hash_number>.0
+```
+
+Exit when completed:
+
+```
+exit
+```
+
+Note: You may need to create the ~/pki/tls/certs directory on the public agent.
+
+### Step 9: On a machine with DC/OS CLI installed and authenticated:
+
+Remove default DC/OS Universe:
+
+```
+dcos package repo remove Universe
+```
+
+Add reference to the local Universes that you added to each Master from your DC/OS CLI enabled Client:
+
+```
+dcos package repo add local-universe  http://master.mesos:8082/repo
+```
+
+Validate in Local Universe in the DC/OS UI:
+
+If successful we should see the local-universe as the only Package Repository listed under DC/OS --> System --> Settings --> Package Repositories
+
+## Congratulations, your Local Universe is now complete!
