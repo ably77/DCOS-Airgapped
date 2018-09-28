@@ -6,7 +6,7 @@ Instructions on [Deploying a Local Universe Containing Selected Packages](https:
 
 The `make` build for your reference:
 ```
-sudo make DCOS_VERSION=1.11.6 DCOS_PACKAGE_INCLUDE="cassandra:2.3.0-3.0.16,chronos:2.5.1,confluent-kafka:2.3.0-4.0.0e,confluent-zookeeper:2.4.0-4.0.0e,datastax-dse:2.3.0-5.1.2,datastax-ops:2.3.0-6.1.2,dcos-enterprise-cli:1.4.5,elastic:2.4.0-5.6.9,hdfs:2.3.0-2.6.0-cdh5.11.0,jenkins:3.5.1-2.107.2,kafka:2.3.0-1.1.0,kafka-zookeeper:2.4.0-3.4.13,kibana:2.4.0-5.6.9,kubernetes:1.3.0-1.10.8,marathon:1.6.535,spark:2.3.1-2.2.1-2,beta-tensorflow:0.2.0-1.5.0-beta,confluent-connect:1.1.1-4.1.1,confluent-control-center:1.1.1-4.1.1,confluent-replicator:1.0.0-3.3.1,confluent-rest-proxy:1.1.1-4.1.1,confluent-schema-registry:1.1.1-4.1.1,gitlab:1.0-9.1.0,grafana:5.5.0-5.1.3,jupyterlab:1.2.0-0.33.7,marathon-lb:1.12.3,mysql:5.7.12-0.3,mysql-admin:4.6.4-0.2,postgresql:9.6-0.2,postgresql-admin:5.1-0.2,prometheus:0.1.1-2.3.2" local-universe
+sudo make DCOS_VERSION=1.11.6 DCOS_PACKAGE_INCLUDE="cassandra:2.3.0-3.0.16,confluent-kafka:2.3.0-4.0.0e,datastax-dse:2.3.0-5.1.2,datastax-ops:2.3.0-6.1.2,dcos-enterprise-cli:1.4.5,elastic:2.4.0-5.6.9,hdfs:2.3.0-2.6.0-cdh5.11.0,jenkins:3.5.1-2.107.2,kafka:2.3.0-1.1.0,kibana:2.4.0-5.6.9,kubernetes:1.3.0-1.10.8,marathon:1.6.535,spark:2.3.1-2.2.1-2,beta-tensorflow:0.2.0-1.5.0-beta,gitlab:1.0-9.1.0,grafana:5.5.0-5.1.3,jupyterlab:1.2.0-0.33.7,marathon-lb:1.12.3,mysql:5.7.12-0.3,prometheus:0.1.1-2.3.2" local-universe
 ```
 
 ## Prerequisites
@@ -31,22 +31,22 @@ dcos node ssh --master-proxy --leader --user=<user>
 
 ### Step 2: Retrieve pre-built local-universe.tar.gz
 
-With access to Public Internet, download from S3 bucket:
+With access to Public Internet, download the pre-built Local Universe TAR from S3 bucket:
 
 ```
 ```
 
-If you are following the Air-Gapped guide and don't have access to Public Internet, use SCP:
+If you are following the Air-Gapped guide and don't have access to Public Internet, use SCP instead:
 
-Step 2a: Navigate to the Mesosphere AWS Console --> EC2 Console
+**Step 2a:** Navigate to the Mesosphere AWS Console --> EC2 Console
 
 For Mesosphere Sales Engineers, the link to AWS is [here](https://aws.mesosphere.com/awsconsole)
 
-Step 2b: Search for Local-Universe-Builder
+**Step 2b:** Search for Local-Universe-Builder
 
 ![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step2b.png)
 
-Step 2c: SSH into Instance and navigate to the DCOS-Airgapped directory
+**Step 2c:** SSH into Instance and navigate to the DCOS-Airgapped directory
 
 This instance is accessible using the default Mesosphere key provided (via OneLogin)[https://mesosphere.onelogin.com/notes/41130] and is using CentOS as the OS
 
@@ -58,7 +58,7 @@ ssh -A centos@<IP_HERE>
 cd DCOS-Airgapped
 ```
 
-Step 2d: SCP the files in the directory to your Master Nodes
+**Step 2d:** SCP the files in the directory to your Master Nodes
 
 Note: If you are using the default Mesosphere key provided (via OneLogin)[https://mesosphere.onelogin.com/notes/41130] then this instance is pre-configured to work accordingly
 
@@ -68,4 +68,56 @@ scp -i ~/.ssh/Mesosphere dcos-local-universe-http.service  <user>@<master_IP>:~
 scp -i ~/.ssh/Mesosphere dcos-local-universe-registry.service  <user>@<master_IP>:~
 ```
 
-Remember that the `local-universe.tar.gz` file is pretty large, so it may take some time to transfer. It may also be useful to review [How to split a large TAR file](https://www.tecmint.com/split-large-tar-into-multiple-files-of-certain-size/) if the file size is too big for your network policies. Because this Local Universe instance is located on AWS, it will be most efficient to use an AWS DC/OS cluster to leverage the AWS intranet.
+Remember that the `local-universe.tar.gz` file is pretty large, so it may take some time to transfer. It may also be useful to review [How to split a large TAR file](https://www.tecmint.com/split-large-tar-into-multiple-files-of-certain-size/) if the file size is too big for your network policies. Because this Local Universe instance is located on AWS, it will be most efficient to use an AWS DC/OS cluster to leverage the AWS intranet for quicker transfer speeds.
+
+### Step 3: Move systemd files into the /etc/systemd/system directory
+
+```
+sudo mv dcos-local-universe-registry.service /etc/systemd/system/
+sudo mv dcos-local-universe-http.service /etc/systemd/system/
+```
+
+Confirm that the files were successfully copied:
+
+```
+ls -la /etc/systemd/system/dcos-local-universe-*
+```
+
+### Step 4: Load the Local Universe into the local agent's Docker
+
+```
+docker load < local-universe.tar.gz
+```
+
+Note: Tis may take some time to complete
+
+### Step 5: Restart the systemd daemon and enable dcos-local-universe-http and dcos-local-universe-registry services:
+
+Restart the systemd daemon:
+
+```
+sudo systemctl daemon-reload
+```
+
+Enable the dcos-local-universe-http and dcos-local-universe-registry services:
+
+```
+sudo systemctl enable dcos-local-universe-http
+sudo systemctl enable dcos-local-universe-registry
+```
+
+Start the dcos-local-universe-http and dcos-local-universe-registry services:
+
+```
+sudo systemctl start dcos-local-universe-http
+sudo systemctl start dcos-local-universe-registry
+```
+
+Confirm that the services are up and running:
+
+```
+sudo systemctl status dcos-local-universe-http
+sudo systemctl status dcos-local-universe-registry
+```
+
+Note: Although the systemd component may have the status ACTIVE
