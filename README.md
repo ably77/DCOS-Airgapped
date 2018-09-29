@@ -3,7 +3,7 @@
 The purpose of this guide is to show a couple methods of how a Mesosphere Sales Engineer can set up an airgapped cluster for testing or lab purposes
 
 ## [Setting Up an Airgapped CCM Cluster](https://github.com/ably77/DCOS-Airgapped/tree/master/CCM)
-## [Setting Up an Airgapped Terraform DC/OS Cluster](https://github.com/ably77/DCOS-Airgapped/tree/master/Terraform)
+## [Setting Up an Airgapped Terraform DC/OS Cluster (WIP)]
 
 # Local Universe
 
@@ -14,5 +14,5 @@ The default DC/OS Universe expects internet connectivity in order to pull auxill
 
 The purpose of this guide will be to continue forward after setting up our Airgapped cluster by adding a Local Universe for both 1.11 Local Universe as well as 1.12 Package Registry (beta)
 
-## [Setting Up pre-1.12 Local Universe]
+## [Setting Up pre-1.12 Local Universe](https://github.com/ably77/DCOS-Airgapped/tree/master/LocalUniverse)
 ## [Setting Up 1.12 Package Registry]  
