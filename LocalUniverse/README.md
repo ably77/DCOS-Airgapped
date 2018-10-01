@@ -24,7 +24,7 @@ ssh -i </path/to/key.pem> <user>@<MASTER_IP>
 dcos node ssh --master-proxy --leader --user=<user>
 ```
 
-### Step 2: Retrieve Certified local-universe.tar.gz from Mesosphere
+### Step 2: Retrieve Certified local-universe.tar.gz from Mesosphere S3 Bucket:
 
 With access to Public Internet, download the pre-built Local Universe TAR from S3 bucket
 
@@ -54,8 +54,31 @@ This instance is accessible using the default Mesosphere key provided (via OneLo
 ssh -A centos@<IP_HERE>
 ```
 
+Depending on which packages you want, `cd` into the correct directory. Here is a list of packages in each `local-universe.tar.gz`
+
+Certified Universe Download:
+
+
+Custom Built Local Universe (Includes Kubernetes, Jupyterlab, Beta-Tensorflow):
+- cassandra:2.3.0-3.0.16
+- dcos-enterprise-cli:1.4.5
+- hdfs:2.3.0-2.6.0-cdh5.11.0
+- kafka:2.3.0-1.1.0
+- kubernetes:1.3.0-1.10.8
+- marathon:1.6.535
+- spark:2.3.1-2.2.1-2
+- beta-tensorflow:0.2.0-1.5.0-beta
+- jupyterlab:1.2.0-0.33.7
+- marathon-lb:1.12.3
+- mysql:5.7.12-0.3
+
+
 ```
 cd CertifiedUniverse
+
+or
+
+cd CustomUniverse
 ```
 
 **Step 2d:** SCP the files in the directory to your Master Nodes
@@ -120,13 +143,55 @@ sudo systemctl status dcos-local-universe-http
 sudo systemctl status dcos-local-universe-registry
 ```
 
-Note: Although the systemd component may have the status ACTIVE, it may take some time for the Docker Registry and NGINX http service to spin up and start serving
+Expected Output:
+
+```
+$ sudo systemctl status dcos-local-universe-http
+● dcos-local-universe-http.service - DCOS: Serve the local universe (HTTP)
+   Loaded: loaded (/etc/systemd/system/dcos-local-universe-http.service; enabled; vendor preset: disabled)
+   Active: active (running) since Mon 2018-10-01 23:46:09 UTC; 6s ago
+  Process: 20352 ExecStartPre=/usr/bin/docker rm %n (code=exited, status=1/FAILURE)
+  Process: 20342 ExecStartPre=/usr/bin/docker kill %n (code=exited, status=1/FAILURE)
+ Main PID: 20358 (docker)
+   Memory: 4.0M
+   CGroup: /system.slice/dcos-local-universe-http.service
+           └─20358 /usr/bin/docker run --rm --name dcos-local-universe-http.service -p 8082:80 mesosphere/universe nginx -g daemon off;
+
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal systemd[1]: Starting DCOS: Serve the local universe (HTTP)...
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal docker[20342]: Error response from daemon: Cannot kill container dcos-local-universe-http.service: No such container: dcos-local-universe-http.service
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal docker[20352]: Error response from daemon: No such container: dcos-local-universe-http.service
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal systemd[1]: Started DCOS: Serve the local universe (HTTP).
+```
+
+```
+$ sudo systemctl status dcos-local-universe-registry
+● dcos-local-universe-registry.service - DCOS: Serve the local universe (Docker registry)
+   Loaded: loaded (/etc/systemd/system/dcos-local-universe-registry.service; enabled; vendor preset: disabled)
+   Active: active (running) since Mon 2018-10-01 23:46:09 UTC; 11s ago
+  Process: 20386 ExecStartPre=/usr/bin/docker rm %n (code=exited, status=1/FAILURE)
+  Process: 20379 ExecStartPre=/usr/bin/docker kill %n (code=exited, status=1/FAILURE)
+ Main PID: 20393 (docker)
+   Memory: 4.1M
+   CGroup: /system.slice/dcos-local-universe-registry.service
+           └─20393 /usr/bin/docker run --rm --name dcos-local-universe-registry.service -p 5000:5000 -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key mesosphere/universe registry serve /etc/...
+
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal systemd[1]: Starting DCOS: Serve the local universe (Docker registry)...
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal docker[20379]: Error response from daemon: Cannot kill container dcos-local-universe-registry.service: No such container: dcos-local-universe-registry.service
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal docker[20386]: Error response from daemon: No such container: dcos-local-universe-registry.service
+Oct 01 23:46:09 ip-10-0-1-40.us-west-2.compute.internal systemd[1]: Started DCOS: Serve the local universe (Docker registry).
+```
+
+**Note:** Although the systemd component may have the status ACTIVE, it may take some time for the Docker Registry and NGINX http service to spin up and start serving (Up to 10-15 minutes)
 
 ### Step 6: Validate that the Local Universe is up and serving
 
 Once the Local Universe is up and serving, you can run a `sudo docker ps` to see that the Registry and NGINX services are up and running. Below is an example output:
 
 ```
+$ sudo docker ps
+CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                                     NAMES
+fcf263740f3d        mesosphere/universe   "registry serve /e..."   8 minutes ago       Up 2 minutes        80/tcp, 443/tcp, 0.0.0.0:5000->5000/tcp   dcos-local-universe-registry.service
+7b22352d4e83        mesosphere/universe   "nginx -g 'daemon ..."   8 minutes ago       Up 2 minutes        443/tcp, 5000/tcp, 0.0.0.0:8082->80/tcp   dcos-local-universe-http.service
 ```
 
 ### Step 7: In each agent, download a copy of the DC/OS certificate locally and set as trusted:
