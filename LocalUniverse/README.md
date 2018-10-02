@@ -265,3 +265,12 @@ If successful we should see the local-universe as the only Package Repository li
 ## Congratulations, your Local Universe is now complete!
 
 ![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-finished.png)
+
+### Step 10: Testing your Local Universe Deployment
+
+A good package to test deploy is the Spark framework. Modify the package to pull its docker image from `master.mesos:5000` instead of Public DockerHub
+
+![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step10a.png)
+
+![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step10a.png)
+
