@@ -260,4 +260,8 @@ Validate in Local Universe in the DC/OS UI:
 
 If successful we should see the local-universe as the only Package Repository listed under DC/OS --> System --> Settings --> Package Repositories
 
+![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step9.png)
+
 ## Congratulations, your Local Universe is now complete!
+
+![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-finished.png)
