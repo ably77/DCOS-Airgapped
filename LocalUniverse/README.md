@@ -272,5 +272,5 @@ A good package to test deploy is the Spark framework. Modify the package to pull
 
 ![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step10a.png)
 
-![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step10a.png)
+![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step10b.png)
 
