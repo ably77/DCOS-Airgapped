@@ -24,9 +24,26 @@ ssh -i </path/to/key.pem> <user>@<MASTER_IP>
 dcos node ssh --master-proxy --leader --user=<user>
 ```
 
-### Step 2: Retrieve Certified local-universe.tar.gz from Mesosphere S3 Bucket:
+### Step 2 - Option #1: Retrieve Official Certified local-universe.tar.gz from Mesosphere S3 Bucket:
 
-With access to Public Internet, download the pre-built Local Universe TAR from S3 bucket
+Official Certified Universe Package Contents:
+```
+cassandra:2.3.0-3.0.16
+chronos:2.5.1
+confluent-kafka:2.3.0-4.0.0e
+confluent-zookeeper:2.4.0-4.0.0e
+datastax-dse:2.3.0-5.1.2
+datastax-ops:2.3.0-6.1.2
+elastic:2.4.0-5.6.9
+hdfs:2.3.0-2.6.0-cdh5.11.0
+jenkins:3.5.2-2.107.2
+kafka:2.3.0-1.1.0
+kafka-zookeeper:2.4.0-3.4.13
+kibana:2.4.0-5.6.9
+spark:2.4.0-2.2.1-3
+```
+
+Download the pre-built Local Universe TAR from S3 bucket
 
 ```
 curl -O https://downloads.mesosphere.com/universe/public/local-universe.tar.gz
@@ -36,9 +53,28 @@ or
 wget https://downloads.mesosphere.com/universe/public/local-universe.tar.gz
 ```
 
-If you are following the Air-Gapped guide and don't have access to Public Internet, use SCP instead:
+### Step 2: Option #2: SCP a Custom Universe from the Mesosphere AWS Account (us-west2 - Oregon)
 
-**Step 2a:** Navigate to the Mesosphere AWS Console --> EC2 Console
+If you need to demo services outside of the Official Certified Universe package contents above, I have built a Custom Local Universe with the following packages that you can use:
+
+Custom universe Package Contents:
+```
+$ cat package_contents.md
+Packages included in this CustomUniverse build:
+cassandra:2.3.0-3.0.16
+dcos-enterprise-cli:1.4.5
+hdfs:2.3.0-2.6.0-cdh5.11.0
+kafka:2.3.0-1.1.0
+kubernetes:1.3.0-1.10.8
+marathon:1.6.535
+spark:2.3.1-2.2.1-2
+beta-tensorflow:0.2.0-1.5.0-beta
+jupyterlab:1.2.0-0.33.7
+marathon-lb:1.12.3
+mysql:5.7.12-0.3
+```
+
+Navigate to the Mesosphere AWS Console --> EC2 Console --> US West 2 (Oregon)
 
 For Mesosphere Sales Engineers, the link to AWS is [here](https://aws.mesosphere.com/awsconsole)
 
@@ -46,7 +82,7 @@ For Mesosphere Sales Engineers, the link to AWS is [here](https://aws.mesosphere
 
 ![](https://github.com/ably77/DCOS-Airgapped/blob/master/resources/LocalU-step2b.png)
 
-**Step 2c:** SSH into Instance and navigate to the CertifiedUniverse directory
+**Step 2c:** SSH into Instance and navigate to the CustomUniverse directory
 
 This instance is accessible using the default Mesosphere key provided (via OneLogin)[https://mesosphere.onelogin.com/notes/41130] and is using CentOS as the OS
 
@@ -54,30 +90,7 @@ This instance is accessible using the default Mesosphere key provided (via OneLo
 ssh -A centos@<IP_HERE>
 ```
 
-Depending on which packages you want, `cd` into the correct directory. Here is a list of packages in each `local-universe.tar.gz`
-
-Certified Universe Download:
-
-
-Custom Built Local Universe (Includes Kubernetes, Jupyterlab, Beta-Tensorflow):
-- cassandra:2.3.0-3.0.16
-- dcos-enterprise-cli:1.4.5
-- hdfs:2.3.0-2.6.0-cdh5.11.0
-- kafka:2.3.0-1.1.0
-- kubernetes:1.3.0-1.10.8
-- marathon:1.6.535
-- spark:2.3.1-2.2.1-2
-- beta-tensorflow:0.2.0-1.5.0-beta
-- jupyterlab:1.2.0-0.33.7
-- marathon-lb:1.12.3
-- mysql:5.7.12-0.3
-
-
 ```
-cd CertifiedUniverse
-
-or
-
 cd CustomUniverse
 ```
 
